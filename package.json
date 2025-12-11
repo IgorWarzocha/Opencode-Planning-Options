@@ -1,0 +1,37 @@
+{
+  "name": "@local/planning-options",
+  "version": "0.0.1",
+  "description": "Idle-time planning options popup that mirrors DCP's pruning summary UI.",
+  "keywords": [
+    "opencode",
+    "plugin",
+    "planning",
+    "context",
+    "idle-popup"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "main": "index.ts",
+  "files": [
+    "index.ts",
+    "README.md",
+    "LICENSE",
+    "tsconfig.json"
+  ],
+  "scripts": {
+    "dev": "opencode plugin dev",
+    "build": "tsc --project tsconfig.json",
+    "typecheck": "tsc --noEmit --project tsconfig.json",
+    "install-deps": "bun install"
+  },
+  "dependencies": {
+    "@opencode-ai/plugin": "file:../packages/plugin"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.9",
+    "typescript": "^5.6.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
