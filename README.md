@@ -1,6 +1,4 @@
-# planning_options plugin
-
-Planning Options plugin
+Opencode Planning Options plugin
 -----------------------
 Structured planning helper for OpenCode. It creates a ghost planning session with the built-in `plan` agent, shows the generated options in a popup, keeps the main assistant silent, and lets the user reply with compact selections (e.g., `1A 2b 3-C note`) that get routed back to the ghost session.
 
