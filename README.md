@@ -1,94 +1,33 @@
-# Planning Options Plugin
+# planning_options plugin
 
-A modern OpenCode plugin that transforms brainstorming into structured, actionable planning. This plugin creates interactive planning sessions with multiple approaches, displayed through elegant popups that keep your conversation clean while empowering decision-making.
+Planning Options plugin
+-----------------------
+Structured planning helper for OpenCode. It creates a ghost planning session with the built-in `plan` agent, shows the generated options in a popup, keeps the main assistant silent, and lets the user reply with compact selections (e.g., `1A 2b 3-C note`) that get routed back to the ghost session.
 
-## ✨ What It Does
+Features
+- Generates three Q/A blocks (Q1–Q3) with A/B/C options in plain text.
+- Popup header shows the model used (configurable via `~/.config/opencode/planning-options.jsonc`).
+- Suppresses assistant chatter after plan generation; waits for user selection.
+- New tool `planning_answers` forwards the user’s picks to the ghost session, returns a concise acknowledgement, and clears state. Ghost deletion is optional via `PLANNING_DELETE_GHOST=1`.
 
-- **Structured Planning**: Generates 3-question, 3-option formatted plans across Architecture, UI, UX, API, Data, Testing, Rollout, Risk, and Decision categories
-- **Ghost Sessions**: Creates ephemeral sub-sessions for plan generation that don't clutter your main conversation
-- **Smart Suppression**: Automatically suppresses follow-up text after showing the planning popup
-- **Interactive Selection**: Accept user selections like "1A 2b 3-C add caching layer" and get refined plans
-- **Model Flexibility**: Use any model with `provider/model` format (e.g., `openai/gpt-4.1`)
+Config
+- Auto-creates `~/.config/opencode/planning-options.jsonc`:
+  - `model`: provider/model string for the ghost planner. Leave unset to use the parent session model.
 
-## 🛠️ Tools
+Usage
+- `planning_options` tool: generate options (returns `Await further instructions`).
+- User replies with selections (e.g., `1A 2c 3b more notes`).
+- `planning_answers` tool: captures the selection and replies with a refined summary from the ghost planner.
 
-### `planning_options`
-The core planning tool that creates structured options for any task.
+Notes
+- Tools are disabled in the ghost session (`tools: {}`) to prevent it from running commands.
+- Each call creates a fresh ghost session; prior one can be deleted if `PLANNING_DELETE_GHOST=1`.
 
-```
-User: Help me plan a new feature release
-Assistant: [uses planning_options]
-✅ Popup appears with structured Q&A options
-Assistant: Awaiting further instructions
-```
-
-### `planning_answers` 
-Processes user selections from the popup and continues the planning flow.
-
-```
-User: 1A 2B 3C use react-query for caching
-✅ Ghost session processes selection
-✅ Cleanup removes temporary session
-Assistant: Here's your refined implementation plan...
-```
-
-## 🚀 Quick Start
+## Running locally
 
 ```bash
-# Clone and setup
-git clone <repository-url>
-cd planning-options
-bun run install-deps
-
-# Start development
+cd planning_options
 bun run dev
 ```
 
-Requires OpenCode CLI in your PATH.
-
-## 🏗️ Development
-
-```bash
-bun run build        # Compile to dist/
-bun run typecheck     # Type checking without emit
-bun run dev          # Live development mode
-```
-
-## 🧠 Architecture
-
-Built with modern TypeScript and OpenCode SDK patterns:
-
-- **Ghost Sessions**: Temporary planning environments that self-destruct
-- **State Management**: In-memory session tracking with automatic cleanup  
-- **Suppression System**: One-shot text completion suppression for clean UX
-- **Error Handling**: Robust error checking with graceful fallbacks
-- **Type Safety**: Full TypeScript strict mode with explicit typing
-
-## 🔧 Configuration
-
-Environment variables:
-- `PLANNING_DELETE_GHOST=1`: Aggressive cleanup of ghost sessions
-
-## 📋 Planning Format
-
-All plans follow this strict structure:
-```
-Q1 - Architecture - How should we structure the component?
-A: Monolithic single file with inline styles
-B: Multi-file component with separate hooks and utilities  
-C: Atomic design with compound components
-
-Q2 - API - What data fetching approach?
-A: Simple fetch in useEffect with local state
-B: Custom hook with loading/error states
-C: RTK Query with caching and invalidation
-
-Q3 - Testing - What testing strategy?
-A: Jest + Testing Library basic coverage
-B: Cypress E2E for critical user flows
-C: Storybook + Visual regression testing
-```
-
-## 📄 License
-
-MIT
+The `dev` script runs `opencode plugin dev`, so ensure the OpenCode CLI is available in your PATH. No additional dependencies beyond `@opencode-ai/plugin` are required at runtime.

@@ -2,18 +2,19 @@ import { tool } from "@opencode-ai/plugin"
 import { buildPlanMessage, sendPopup } from "./ui"
 import { suppression } from "./suppress"
 import { planningState } from "./state"
+import type { PlanningConfig } from "./config"
+import { getSessionModel } from "./session-model"
 
 type ToolCtx = {
   client: any
 }
 
-export function createPlanningTool(ctx: ToolCtx) {
+export function createPlanningTool(ctx: ToolCtx, config: PlanningConfig) {
   return tool({
     description:
       "Generate structured planning options. Behaviors: (1) create a ghost sub-session, (2) show the plan in the planning popup UI, (3) return the literal string 'Await further instructions' so the assistant stays silent and waits for the user to pick an option. Do not expect a textual plan in the tool return value; the plan is shown via popup.",
     args: {
       planning_options: tool.schema.string().describe("Freeform planning request"),
-      model: tool.schema.string().optional().describe("Optional model in provider/model format (e.g., openai/gpt-4.1)"),
     },
     async execute(args, toolCtx) {
       const parentSessionID = toolCtx.sessionID
@@ -42,13 +43,15 @@ export function createPlanningTool(ctx: ToolCtx) {
       const subSessionID = created.data.id as string
 
       // 2) Prompt the ghost session
+      const requestedModel = config.model
+      const sessionModel = await getSessionModel(ctx.client, parentSessionID)
       const modelSpec =
-        args.model && args.model.includes("/")
+        requestedModel && requestedModel.includes("/")
           ? (() => {
-              const [providerID, modelID] = args.model.split("/", 2)
+              const [providerID, modelID] = requestedModel.split("/", 2)
               return providerID && modelID ? { providerID, modelID } : undefined
             })()
-          : undefined
+          : sessionModel
 
       const ghost = await ctx.client.session.prompt({
         path: { id: subSessionID },
@@ -60,6 +63,8 @@ export function createPlanningTool(ctx: ToolCtx) {
             },
           ],
           ...(modelSpec ? { model: modelSpec } : {}),
+          // Disable tool use in ghost planning session
+          tools: {},
           agent: "plan", // force built-in plan agent for ghost session
         },
       })
@@ -74,7 +79,11 @@ export function createPlanningTool(ctx: ToolCtx) {
       const modelLabel =
         ghost.data?.info?.model
           ? `${ghost.data.info.model.providerID}/${ghost.data.info.model.modelID}`
-          : args.model || "unknown-model"
+          : modelSpec
+          ? `${modelSpec.providerID}/${modelSpec.modelID}`
+          : sessionModel
+          ? `${sessionModel.providerID}/${sessionModel.modelID}`
+          : requestedModel // raw string from config if parsing succeeded
 
       const popup = buildPlanMessage(planText, modelLabel)
       await sendPopup(ctx.client, parentSessionID, popup)

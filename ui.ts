@@ -1,9 +1,23 @@
 /**
  * UI helpers for the planning options popup.
- * Stubbed idle message lives in ui-stubs/idle-popup.ts for reuse.
+ * Self-contained; does not depend on idle stubs.
  */
 
-import { sendPopup as sharedSendPopup } from "../ui-stubs/idle-popup"
+// Minimal sendPopup implementation (avoids shared stubs to keep plugin self-contained)
+export async function sendPopup(client: any, sessionID: string, text: string): Promise<void> {
+  if (!client || !client.session?.prompt) return
+  try {
+    await client.session.prompt({
+      path: { id: sessionID },
+      body: {
+        noReply: true,
+        parts: [{ type: "text", text, ignored: true }],
+      },
+    })
+  } catch {
+    // best-effort UI; swallow errors
+  }
+}
 
 export function buildPlanMessage(plan: string, modelLabel?: string): string {
   const trimmed = plan.trim()
@@ -13,5 +27,3 @@ export function buildPlanMessage(plan: string, modelLabel?: string): string {
   const body = trimmed || "(no plan content returned)"
   return [header, "", body].join("\n").trim()
 }
-
-export const sendPopup = sharedSendPopup

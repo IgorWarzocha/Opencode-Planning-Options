@@ -16,6 +16,6 @@
     "rootDir": "..",
     "types": ["node"]
   },
-  "include": ["./*.ts", "../ui-stubs/*.ts"],
+  "include": ["./*.ts"],
   "exclude": ["node_modules", "dist"]
 }
